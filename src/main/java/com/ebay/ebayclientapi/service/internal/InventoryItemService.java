@@ -9,7 +9,10 @@ import com.ebay.ebayclientapi.exception.InvalidException;
 import com.ebay.ebayclientapi.helper.CsvHelper;
 import com.ebay.ebayclientapi.service.external.InventorrApiService;
 
+import lombok.extern.slf4j.Slf4j;
+
 @Service
+@Slf4j
 public class InventoryItemService {
 
     @Autowired
@@ -21,7 +24,7 @@ public class InventoryItemService {
             String response = inventorrApiService.bulkCreateInventoryItem(inventoryItemRequest);
             return response;
         } catch (Exception ex) {
-            throw new InvalidException("Failed to create buil inventory item");
+           throw new InvalidException("Failed to create bulk inventory item - err " + ex.getMessage());
         }
     }
 }

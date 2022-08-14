@@ -12,14 +12,18 @@ import org.springframework.web.client.RestTemplate;
 
 import com.ebay.ebayclientapi.config.HttpRequestUtility;
 import com.ebay.ebayclientapi.entity.request.inventoryitem.InventoryItemRequest;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import lombok.extern.slf4j.Slf4j;
 
 @Service
+@Slf4j
 public class InventoryApiServiceImpl implements InventorrApiService {
 
     @Value("${inventory.api.bulk_create_or_replace_inventory_item.url}")
     private String rootUrl;
 
-    @Value("{inventory.api.access_token")
+    @Value("${inventory.api.access_token}")
     private String accessToken;
 
     @Autowired
@@ -32,13 +36,18 @@ public class InventoryApiServiceImpl implements InventorrApiService {
     public String bulkCreateInventoryItem(InventoryItemRequest inventoryItemRequest) {
         try {
             // generate header
-            HttpHeaders httpHeaders = httpRequestUtility.buildHttpHeaders(MediaType.MULTIPART_FORM_DATA, accessToken);
-            HttpEntity<InventoryItemRequest> request = new HttpEntity<>(inventoryItemRequest, httpHeaders);
+            String apiUrl = rootUrl + "/bulk_create_or_replace_inventory_item";
+            HttpHeaders httpHeaders = httpRequestUtility.buildHttpHeaders(MediaType.APPLICATION_JSON, accessToken);
+            ObjectMapper mapper = new ObjectMapper();
+            log.info(rootUrl);
+            log.info(accessToken);
+            log.info(mapper.writeValueAsString(inventoryItemRequest));
+            HttpEntity<String> request = new HttpEntity<>(mapper.writeValueAsString(inventoryItemRequest), httpHeaders);
             // send post request
-            ResponseEntity<String> response = restTemplate.postForEntity(rootUrl, request, String.class);
-            return response.getBody();
+            String response = restTemplate.postForObject(apiUrl, request, String.class);
+            return response;
         } catch (Exception ex) {
-            throw new RestClientException("Failed to call external Inventory API to create bulk inventory");
+            throw new RestClientException("Failed to call external Inventory API to create bulk inventory - err " + ex.getMessage());
         }
     }
 }

@@ -26,6 +26,9 @@ import com.opencsv.CSVParserBuilder;
 import com.opencsv.CSVReader;
 import com.opencsv.CSVReaderBuilder;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 public class CsvHelper {
 
     private static final char SEPARATOR = ',';
@@ -55,7 +58,7 @@ public class CsvHelper {
         // epid position 6
         headerPositionMapping.put(CsvConstant.EPID, 5);
         // imgaes postion 14
-        headerPositionMapping.put(CsvConstant.IMAGE_URLS, 14);
+        headerPositionMapping.put(CsvConstant.IMAGE_URLS, 13);
         // manufacturer part number position 27
         headerPositionMapping.put(CsvConstant.MPN, 26);
         // title position 4
@@ -73,15 +76,20 @@ public class CsvHelper {
             BufferedReader reader = new BufferedReader(new InputStreamReader(is, "UTF-8"));
             CSVParser csvParser = new CSVParserBuilder()
                             .withSeparator(SEPARATOR)
-                            .withIgnoreQuotations(true)
+                            .withIgnoreQuotations(false)
+                            
                             .build();
             CSVReader csvReader = new CSVReaderBuilder(reader)
-                            .withSkipLines(0)
+                            .withSkipLines(2)
                             .withCSVParser(csvParser)
                             .build();
             String[] nextLine;
             List<Request> requests = new ArrayList<>();
             while ((nextLine = csvReader.readNext()) != null) {
+                log.info("Line content {}", Arrays.toString(nextLine));
+                for (String s: nextLine) {
+                    log.info(s);
+                }
                 Request request = Request.builder()
                     .availability(
                         Availability.builder()
@@ -113,7 +121,7 @@ public class CsvHelper {
                             .brand(nextLine[headerPositionMapping.get(CsvConstant.BRAND)])
                             .description(nextLine[headerPositionMapping.get(CsvConstant.DESCRIPTION)])
                             .epid(nextLine[headerPositionMapping.get(CsvConstant.EPID)])
-                            .imageUrls(Arrays.asList(nextLine[headerPositionMapping.get(CsvConstant.IMAGE_URLS)]))
+                            .imageUrls(generateImageUrls(nextLine[headerPositionMapping.get(CsvConstant.IMAGE_URLS)]))
                             .mpn(nextLine[headerPositionMapping.get(CsvConstant.MPN)])
                             .title(nextLine[headerPositionMapping.get(CsvConstant.TITLE)])
                             .build()
@@ -127,11 +135,15 @@ public class CsvHelper {
             InventoryItemRequest inventoryItemRequest = InventoryItemRequest.builder().requests(requests).build();
             return inventoryItemRequest;
         } catch (Exception ex) {
-            throw new CsvException("Failed to parse CSV file");
+           throw new CsvException("Failed to parse CSV file - error " + ex.getMessage());
         }
     }
 
     private static String generateSku(String csLinecode, String partNumber) {
         return csLinecode + ":" + partNumber;
+    }
+
+    private static List<String> generateImageUrls(String csvImageUrls) {
+        return Arrays.asList(csvImageUrls.split("\\|\\|"));
     }
 }

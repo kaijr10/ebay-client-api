@@ -22,7 +22,7 @@ public class HttpRequestUtility {
 
     public HttpHeaders buildHttpHeaders(MediaType mediaType, String accessToken) {
         HttpHeaders httpHeaders = buildHttpHeaders(mediaType);
-        httpHeaders.setBearerAuth(accessToken);
+        httpHeaders.set("Authorization", "Bearer " + accessToken);
         return httpHeaders;
     }
 }

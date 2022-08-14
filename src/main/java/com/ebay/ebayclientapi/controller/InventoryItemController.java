@@ -19,15 +19,15 @@ public class InventoryItemController {
     private InventoryItemService inventoryItemService;
 
     @PostMapping("/create")
-    public ResponseEntity<?> createInventoryItem(@RequestParam MultipartFile csvUploadFile) {
+    public ResponseEntity<?> createInventoryItem(@RequestParam("csv_file") MultipartFile csvUploadFile) {
         if (csvUploadFile.isEmpty()) {
             return new ResponseEntity<>(false, HttpStatus.NOT_FOUND);
         }
-        try {
+	    try {
             String response = inventoryItemService.createBulkInventoryItem(csvUploadFile);
             return new ResponseEntity<>(response, HttpStatus.OK);
         } catch (Exception ex) {
-            return new ResponseEntity<>("Failed to process csv file uploaded", HttpStatus.UNPROCESSABLE_ENTITY);
+           return new ResponseEntity<>("Failed to process csv file uploaded - err " + ex.getMessage(), HttpStatus.UNPROCESSABLE_ENTITY);
         }
     }
 }
